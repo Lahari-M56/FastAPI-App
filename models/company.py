@@ -1,6 +1,7 @@
 from sqlalchemy import Column,Integer,String,Enum,relationship
 from database import engine,Base,SessionLocal
 
+
 Base=declarative_Base()
 class Company(Base):
     __tablename__="companies"
@@ -10,3 +11,4 @@ class Company(Base):
     phone=Column(String,unique=True)
     jobs=relationship("Job",
     back_populates="company")
+
