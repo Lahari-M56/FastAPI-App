@@ -19,7 +19,7 @@ def create_company(company: CompanyCreate, db: Session = Depends(get_db)):
     return db_company
 
 
-@router.get("/", response_model=list[CompanyResponse])
+@router.get("/", response_model=list[CompanyResponse],status_code=status.HTTP_200_OK)
 def get_all_company(db: Session = Depends(get_db)):
     companies=db.query(Company).all()
     return companies
@@ -35,7 +35,7 @@ def get_company(company_id: int, db: Session = Depends(get_db)):
     return company
 
 
-@router.put("/{company_id}", response_model=CompanyResponse)
+@router.put("/{company_id}", response_model=CompanyResponse,status_code=status.HTTP_200_OK)
 def update_company(company_id: int, company: CompanyUpdate, db: Session = Depends(get_db)):
     db_company = db.query(Company).filter(Company.id == company_id).first()
     if not db_company :
