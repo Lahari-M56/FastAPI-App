@@ -1,4 +1,4 @@
-import Welcome from "./components/welcome";
+// import Welcome from "./components/welcome";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import CompanyCard from "./components/CompanyCard";
@@ -9,7 +9,7 @@ import { getCompanies } from "./Services/CompanyService";
 
 function App(){
   const[loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const[companies, setCompanies] = useState<Company[]>([]);
 
   async function fetchCompanies() {
@@ -18,7 +18,7 @@ function App(){
       const companies = await getCompanies();
       setCompanies(companies);
     } catch (error) {
-      setError(error);
+      setError(error as Error);
     } finally {
       setLoading(false);
     }
@@ -32,18 +32,20 @@ function App(){
   }
 
   if (error) {
-    return <div>{error}</div>;
-  } 
+    return <div>{error.message}</div>;
+  }
+
   return(
     <>
     <NavBar />
-    <Welcome />
+    {/* <Welcome /> */}
     <br  />
-    <CompanyCard key={companies.id} companies={companies} />
+    <CompanyCard 
+    companies={companies} />
     <JobCard />
     <Footer />
     </>
   )
 }
 
-export type { Company };
+export default App;
