@@ -1,8 +1,13 @@
 from logging.config import fileConfig
+import sys
+import os
+
+# Add the project root directory to sys.path so that
+# 'database', 'models', etc. can be imported correctly.
+sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -14,15 +19,12 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 from database import Base
 from models.company import Company
-from models.job import Job
-target_metadata=Base.metadata
+from models.job import Job    
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
