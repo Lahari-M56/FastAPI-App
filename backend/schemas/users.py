@@ -7,10 +7,7 @@ class UserBase(BaseModel):
     role: str
 
 class UserCreate(UserBase):
-    name: str
-    email: str
-    password: str
-    role: str
+    pass
 
 class UserResponse(BaseModel):
     id: int
