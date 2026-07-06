@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import company, job, auth
+from routers import company, job, auth,rag
 from routers.chat import router as chat_router
 
 from database import Base, engine
@@ -32,6 +32,7 @@ app.include_router(company.router)
 app.include_router(job.router)
 app.include_router(auth.router)
 app.include_router(chat_router)
+app.include_router(rag.router)
 
 
 @app.get("/")
