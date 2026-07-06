@@ -3,12 +3,14 @@ import CompanyCard from "./components/CompanyCard";
 import JobCard from "./components/JobCard";
 import Footer from "./components/Footer";
 import { useEffect, useState } from "react";
+
 import {
   getCompanies,
   updateCompany,
   deleteCompany,
   createCompany,
 } from "./Services/CompanyService";
+
 import type { Company } from "./types/company";
 
 function App() {
@@ -18,11 +20,19 @@ function App() {
 
   async function fetchCompanies() {
     setLoading(true);
+    setError(null);
+
     try {
       const data = await getCompanies();
       setCompanies(data);
-    } catch (err) {
-      setError("Failed to fetch companies");
+    } catch (err: any) {
+      console.error(err);
+
+      if (err.response?.status === 401) {
+        setError("Unauthorized. Please login again.");
+      } else {
+        setError("Failed to fetch companies");
+      }
     } finally {
       setLoading(false);
     }
@@ -57,6 +67,7 @@ function App() {
   async function handleAdd(company: Company) {
     try {
       const newCompany = await createCompany(company);
+
       setCompanies((prev) => [...prev, newCompany]);
     } catch (err) {
       setError("Failed to add company");
@@ -69,11 +80,12 @@ function App() {
 
   if (loading) return <div>Loading...</div>;
 
-  if (error) return <div>Error: {error}</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <>
       <NavBar />
+
       <br />
 
       <CompanyCard
@@ -84,6 +96,7 @@ function App() {
       />
 
       <JobCard />
+
       <Footer />
     </>
   );

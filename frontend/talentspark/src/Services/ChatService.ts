@@ -2,10 +2,7 @@ import api from "./api";
 import type { Company } from "../types/company";
 
 export async function getCompanies(): Promise<Company[]> {
-  console.log("Stored Token:", localStorage.getItem("token"));
-
   const response = await api.get("/company/");
-
   return response.data;
 }
 

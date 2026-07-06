@@ -1,39 +1,47 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from routers import company, job, auth
 from routers.chat import router as chat_router
 
 from database import Base, engine
+
 from models import (
-    job as job_model,
     company as company_model,
+    job as job_model,
     users as user_model,
 )
 
-from fastapi.middleware.cors import CORSMiddleware
+Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="TalentSpark API",
+    version="1.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],   # Change this in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Base.metadata.create_all(bind=engine)
 
+app.include_router(company.router)
+app.include_router(job.router)
+app.include_router(auth.router)
+app.include_router(chat_router)
 
-from routers import company, job, auth,chat
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"message": "TalentSpark Backend is Running"}
 
 @app.get("/about")
 def read_about():
-    return {"about": "This is about page"}
+    return {"about": "This is the TalentSpark API backend"}
 
 @app.get("/contact")
 def read_contact():
-    return {"contact": "This is contact page"}
+    return {"contact": "TalentSpark Contact API"}
