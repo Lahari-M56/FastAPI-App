@@ -18,7 +18,6 @@ function Login({ onLogin, onSwitchToRegister }: Props) {
 
       console.log("Login Response:", response);
 
-      // Save token (extra safety)
       localStorage.setItem("token", response.access_token);
 
       onLogin(response.access_token);
@@ -35,38 +34,42 @@ function Login({ onLogin, onSwitchToRegister }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
+    <div className="login-container">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h2>Login</h2>
 
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-      />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+        />
 
-      <br />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+        />
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        required
-      />
-
-      <br />
-
-      <button type="submit">Login</button>
-
-      <p>
-        Don't have an account?
-        <button type="button" onClick={onSwitchToRegister}>
-          Register
+        <button type="submit">
+          Login
         </button>
-      </p>
-    </form>
+
+        <p>
+          Don't have an account?
+          <button
+            type="button"
+            className="link-button"
+            onClick={onSwitchToRegister}
+          >
+            Register
+          </button>
+        </p>
+      </form>
+    </div>
   );
 }
 
