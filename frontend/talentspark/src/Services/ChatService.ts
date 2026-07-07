@@ -1,29 +1,12 @@
 import api from "./api";
-import type { Company } from "../types/company";
+import type { ChatResponse } from "../types/chat";
 
-export async function getCompanies(): Promise<Company[]> {
-  const response = await api.get("/company/");
-  return response.data;
+export async function askChat(message: string): Promise<string> {
+    const response = await api.post<ChatResponse>("/chat/ask", { message });
+    return response.data.response;
 }
 
-export async function getCompany(id: number): Promise<Company> {
-  const response = await api.get(`/company/${id}`);
-  return response.data;
-}
-
-export async function createCompany(company: Company): Promise<Company> {
-  const response = await api.post("/company/", company);
-  return response.data;
-}
-
-export async function updateCompany(
-  id: number,
-  company: Company
-): Promise<Company> {
-  const response = await api.put(`/company/${id}`, company);
-  return response.data;
-}
-
-export async function deleteCompany(id: number): Promise<void> {
-  await api.delete(`/company/${id}`);
+export async function askCareerChat(message: string, session_id: string): Promise<string> {
+    const response = await api.post<ChatResponse>("/chat/ask_career", { message, session_id });
+    return response.data.response;
 }

@@ -1,8 +1,10 @@
 import type {Company} from "../types/company";
+import type {Job} from "../types/job";
 import {useState} from "react";
 
 type Props = {
     companies:Company[];
+    jobs:Job[];
     onEdit: (company:Company)=>void;
     onDelete: (id:number)=>void;
     onAdd: (company:Company)=>void;
@@ -10,7 +12,7 @@ type Props = {
 
 
 function CompanyCard({
-    companies,onAdd,onEdit,onDelete}:Props){
+    companies,jobs,onAdd,onEdit,onDelete}:Props){
     const [editCompanyId, setEditCompanyId] = useState<number | null>(null);
     const [addform,setAddform] = useState<Company>({
         id:0,
@@ -82,6 +84,7 @@ function CompanyCard({
                     <p>Email: {company.email}</p>
                     <p>Phone: {company.phone}</p>
                     <p>Location: {company.location}</p>
+                    <p>Jobs: {jobs.filter(j => j.company_id === company.id).length} opening{jobs.filter(j => j.company_id === company.id).length === 1 ? '' : 's'}</p>
                     <button
                         onClick={() => {
                             setEditCompanyId(company.id);
@@ -101,10 +104,10 @@ function CompanyCard({
                 </div>
             ))}
             <h2>Add Company</h2>
-            <input type="text" value={addform.name} onChange={(e)=>setAddform({...addform,name:e.target.value})} />
-            <input type="text" value={addform.email} onChange={(e)=>setAddform({...addform,email:e.target.value})} />
-            <input type="text" value={addform.phone} onChange={(e)=>setAddform({...addform,phone:e.target.value})} />
-            <input type="text" value={addform.location} onChange={(e)=>setAddform({...addform,location:e.target.value})} />
+            <input type="text" value={addform.name} onChange={(e)=>setAddform({...addform,name:e.target.value})} placeholder="Name" />
+            <input type="text" value={addform.email} onChange={(e)=>setAddform({...addform,email:e.target.value})} placeholder="Email" />
+            <input type="text" value={addform.phone} onChange={(e)=>setAddform({...addform,phone:e.target.value})} placeholder="Phone" />
+            <input type="text" value={addform.location} onChange={(e)=>setAddform({...addform,location:e.target.value})} placeholder="Location" />
             <button onClick={handleAdd}>Add</button>
         </div>
     )

@@ -1,13 +1,25 @@
-function NavBar(){
-  return (
-    <nav>
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/contact">Contact</a></li>
-      </ul>
-    </nav>
-  )
+type Props = {
+    currentPage: string;
+    onNavigate: (page: string) => void;
 }
 
-export default NavBar;
+function NavBar({ currentPage, onNavigate }: Props) {
+    return (
+        <nav>
+            <button onClick={() => onNavigate("home")} disabled={currentPage === "home"}>Home</button>
+            <button onClick={() => onNavigate("chat")} disabled={currentPage === "chat"}>Chat</button>
+            <button onClick={() => onNavigate("resume")} disabled={currentPage === "resume"}>Resume</button>
+            <button onClick={() => onNavigate("jobmatch")} disabled={currentPage === "jobmatch"}>Job Match</button>
+            <button
+                onClick={() => {
+                    localStorage.removeItem("token");
+                    window.location.reload();
+                }}
+            >
+                Logout
+            </button>
+        </nav>
+    )
+}
+
+export default NavBar

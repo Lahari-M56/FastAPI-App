@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { login } from "../Services/AuthService";
-import axios from "axios";
 
 type Props = {
   onLogin: (token: string) => void;
@@ -15,35 +14,23 @@ function Login({ onLogin, onSwitchToRegister }: Props) {
     e.preventDefault();
 
     try {
-      const response = await login({
-        email,
-        password,
-      });
+      const response = await login({ email, password });
 
-      // Save token in localStorage
+      console.log("Login Response:", response);
+
+      // Save token (extra safety)
       localStorage.setItem("token", response.access_token);
 
-      console.log("Token Saved:", response.access_token);
-
-      // Notify parent component
       onLogin(response.access_token);
+    } catch (err: any) {
+      console.error("Login Error:", err);
 
-      alert("Login Successful");
-    } catch (error) {
-      console.error("Login Error:", error);
-
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          console.log("Backend Response:", error.response.data);
-          alert(error.response.data.detail);
-        } else if (error.request) {
-          alert("Cannot connect to backend.");
-        } else {
-          alert(error.message);
-        }
-      } else {
-        alert("An unexpected error occurred.");
+      if (err.response) {
+        console.log("Status:", err.response.status);
+        console.log("Data:", err.response.data);
       }
+
+      alert("Login failed");
     }
   };
 
@@ -53,30 +40,25 @@ function Login({ onLogin, onSwitchToRegister }: Props) {
 
       <input
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
         required
       />
 
-      <br />
       <br />
 
       <input
         type="password"
-        placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
         required
       />
 
       <br />
-      <br />
 
       <button type="submit">Login</button>
-
-      <br />
-      <br />
 
       <p>
         Don't have an account?

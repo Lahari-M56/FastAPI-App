@@ -1,158 +1,61 @@
-import { useState, useRef, useEffect } from "react";
-import { askCareerChatbot } from "../Services/ChatService";
-
-interface Message {
-  sender: "user" | "bot";
-  text: string;
-}
+import { useState } from "react";
+import { askCareerChat } from "../Services/ChatService";
+import type { ChatMessage } from "../types/chat";
 
 function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sessionId] = useState<string>(() => {
-    const existing = localStorage.getItem("chat_session_id");
-    if (existing) return existing;
-    const newId = "session_" + Date.now();
-    localStorage.setItem("chat_session_id", newId);
-    return newId;
-  });
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [input, setInput] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [sessionId] = useState(() => "session_" + Date.now());
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+    const handleSend = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input.trim()) return;
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+        const userMessage: ChatMessage = { role: "user", content: input };
+        setMessages(prev => [...prev, userMessage]);
+        setInput("");
+        setLoading(true);
 
-  const sendMessage = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
+        try {
+            const response = await askCareerChat(input, sessionId);
+            const botMessage: ChatMessage = { role: "bot", content: response };
+            setMessages(prev => [...prev, botMessage]);
+        } catch (error) {
+            console.error("Chat error:", error);
+            const errorMessage: ChatMessage = { role: "bot", content: "Error: Could not get response" };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    setMessages((prev) => [...prev, { sender: "user", text }]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const reply = await askCareerChatbot(text, sessionId);
-      setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Something went wrong.";
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: `Error: ${msg}` },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  };
-
-  return (
-    <div style={styles.container}>
-      <h2>Career Guidance Chatbot</h2>
-
-      <div style={styles.chatBox}>
-        {messages.length === 0 && (
-          <div style={styles.placeholder}>
-            Ask me anything about careers, skills, or job paths.
-          </div>
-        )}
-
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
-              ...styles.message,
-              textAlign: msg.sender === "user" ? "right" : "left",
-              color: msg.sender === "user" ? "#0b5ed7" : "#222",
-            }}
-          >
-            <strong>{msg.sender === "user" ? "You" : "Bot"}:</strong>{" "}
-            {msg.text}
-          </div>
-        ))}
-
-        {loading && <div style={styles.typing}>Bot is typing...</div>}
-        <div ref={bottomRef} />
-      </div>
-
-      <div style={styles.inputRow}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Type your question..."
-          style={styles.input}
-          disabled={loading}
-        />
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-          style={{
-            ...styles.button,
-            opacity: loading ? 0.6 : 1,
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          Send
-        </button>
-      </div>
-    </div>
-  );
+    return (
+        <div>
+            <h2>Career Chat</h2>
+            <div style={{ border: "1px solid #ccc", padding: "10px", height: "400px", overflowY: "scroll" }}>
+                {messages.length === 0 && <p>Ask me anything about your career!</p>}
+                {messages.map((msg, i) => (
+                    <div key={i} style={{ marginBottom: "10px" }}>
+                        <strong>{msg.role === "user" ? "You" : "Bot"}:</strong>
+                        <p>{msg.content}</p>
+                    </div>
+                ))}
+                {loading && <p><em>Thinking...</em></p>}
+            </div>
+            <form onSubmit={handleSend} style={{ marginTop: "10px" }}>
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message..."
+                    style={{ width: "80%" }}
+                    disabled={loading}
+                />
+                <button type="submit" disabled={loading}>Send</button>
+            </form>
+        </div>
+    );
 }
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: 600,
-    margin: "40px auto",
-    fontFamily: "Arial, sans-serif",
-  },
-  chatBox: {
-    background: "#fff",
-    borderRadius: 8,
-    padding: 20,
-    height: 400,
-    overflowY: "auto",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-  },
-  placeholder: {
-    color: "#999",
-    textAlign: "center",
-    marginTop: 150,
-  },
-  message: {
-    margin: "10px 0",
-    lineHeight: 1.4,
-  },
-  typing: {
-    color: "#888",
-    fontStyle: "italic",
-  },
-  inputRow: {
-    display: "flex",
-    marginTop: 15,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 6,
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "10px 20px",
-    marginLeft: 8,
-    border: "none",
-    background: "#0b5ed7",
-    color: "white",
-    borderRadius: 6,
-  },
-};
 
 export default Chat;
