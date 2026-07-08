@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:abc123@localhost:5432/student_db")
-
+# DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:abc123@localhost:5432/student_db")
+DATABASE_URL = "postgresql+asyncpg://postgres:abc123@localhost:5432/student_db"
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)

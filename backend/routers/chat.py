@@ -1,34 +1,20 @@
-# from fastapi import APIRouter
-# from schemas.chat import ChatRequest, ChatResponse
-# from services.langchain_service import chat
+from fastapi import APIRouter, HTTPException
+from schemas.chat import ChatRequest, ChatResponse
+from services.llm_service import llm_response
+from services.langchain_service import ask_career_chatbot_response
 
-# router = APIRouter(prefix="/chat", tags=["Chat"])
-# @router.post("/", response_model=ChatResponse)
-# def chat_api(request: ChatRequest):
-#     answer = chat(
-#         session_id=request.session_id,
-#         user_query=request.user_query,
-#     )
-#     return ChatResponse(response=answer)
+router = APIRouter(prefix="/chat",tags=["Chat"])
 
-# @router.get("/health")
-# def health_check():
-#     return {"status": "ok"}
+# @router.post("/ask",response_model=ChatResponse)    
+# def chat_ask(request:ChatRequest):
+#     ans = llm_response(request.message)
+#     return ChatResponse(response=ans)
 
-from fastapi import APIRouter
-from pydantic import BaseModel
-from services.langchain_service import ask_ai
 
-router = APIRouter(
-    prefix="/chat",
-    tags=["Chat"]
-)
-
-class ChatRequest(BaseModel):
-    user_query: str
-    session_id: str = "user1"
-
-@router.post("/")
-def chat(request: ChatRequest):
-    response = ask_ai(request.user_query, request.session_id)
-    return {"response": response}
+@router.post("/ask_career",response_model=ChatResponse)
+def ask_career_chatbot(request:ChatRequest):
+    try:
+        ans = ask_career_chatbot_response(request.message, request.session_id)
+        return ChatResponse(response=ans)   
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Career chatbot service error: {str(e)}")

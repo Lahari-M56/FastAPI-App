@@ -54,21 +54,3 @@ class SemanticSearchResult(BaseModel):
 
 class SemanticSearchResponse(BaseModel):
     results: list[SemanticSearchResult]
-
-#                     USER
-#                       │
-#       ┌───────────────┼────────────────┐
-#       │               │                │
-#       ▼               ▼                ▼
-#  Resume API     Search API        Match API
-#       │               │                │
-# ResumeRequest   JobSearchRequest  JobMatchRequest
-#       │               │                │
-#       ▼               ▼                ▼
-#  Resume AI       Qdrant Search     Profile Matching
-#       │               │                │
-#       ▼               ▼                ▼
-# ResumeResponse SemanticSearchResponse JobMatchResponse
-#                       │
-#                       ▼
-#                  Frontend

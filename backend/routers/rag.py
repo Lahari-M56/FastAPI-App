@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from schemas.rag import (
     ResumeRequest, ResumeResponse,
@@ -16,70 +16,49 @@ router = APIRouter(prefix="/rag", tags=["RAG"])
 
 
 @router.post("/embed-jobs", response_model=EmbedResponse)
-def embed_jobs(db: Session = Depends(get_db)):
-    count = embed_all_jobs(db)
-    return EmbedResponse(message=f"Embedded {count} jobs into Qdrant", count=count)
+async def embed_jobs(db: AsyncSession = Depends(get_db)):
+    try:
+        count = await embed_all_jobs(db)
+        return EmbedResponse(message=f"Embedded {count} jobs into Qdrant", count=count)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to embed jobs: {str(e)}")
 
 
 @router.post("/search", response_model=SemanticSearchResponse)
 def semantic_search(request: JobSearchRequest):
-    results = search_jobs(request.query, top_k=5)
-    return SemanticSearchResponse(
-        results=[SemanticSearchResult(**r) for r in results]
-    )
+    try:
+        results = search_jobs(request.query, top_k=5)
+        return SemanticSearchResponse(
+            results=[SemanticSearchResult(**r) for r in results]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Semantic search failed: {str(e)}")
 
 
 @router.post("/ask", response_model=RagSearchResponse)
 def rag_ask(request: RagSearchRequest):
-    answer = rag_job_search(request.question)
-    return RagSearchResponse(answer=answer)
+    try:
+        answer = rag_job_search(request.question)
+        return RagSearchResponse(answer=answer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"RAG search query failed: {str(e)}")
 
 
 @router.post("/analyse-resume", response_model=ResumeResponse)
 def resume_analyse(request: ResumeRequest):
-    analysis = analyse_resume(request.resume_text)
-    return ResumeResponse(analysis=analysis)
+    try:
+        analysis = analyse_resume(request.resume_text)
+        return ResumeResponse(analysis=analysis)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Resume analysis failed: {str(e)}")
 
 
 @router.post("/job-match", response_model=JobMatchResponse)
 def job_match(request: JobMatchRequest):
-    results = match_jobs_for_profile(request.skills, request.experience, top_k=5)
-    return JobMatchResponse(
-        matches=[JobMatchResult(**r) for r in results]
-    )
-
-
-#                     Client
-#                       │
-#           HTTP POST Request (JSON)
-#                       │
-#                       ▼
-#               FastAPI Router
-#                       │
-#       ┌───────────────┼──────────────────┐
-#       │               │                  │
-#       ▼               ▼                  ▼
-#  Resume API      Search API        RAG API
-#       │               │                  │
-#       ▼               ▼                  ▼
-#  Resume Service  Qdrant Service    RAG Service
-#       │               │                  │
-#       ▼               ▼                  ▼
-#     Groq          Vector Search     Groq + Qdrant
-#                       │
-#                       ▼
-#               Pydantic Response
-#                       │
-#                       ▼
-#                JSON Response
-#                       │
-#                       ▼
-#                    Frontend
-
-# | Endpoint                       | Purpose                                                                                                                  | Service Called             |
-# | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
-# | **POST `/rag/embed-jobs`**     | Reads all jobs from PostgreSQL, generates embeddings, and stores them in Qdrant.                                         | `embed_all_jobs()`         |
-# | **POST `/rag/search`**         | Performs semantic search using a natural-language query and returns the top matching jobs.                               | `search_jobs()`            |
-# | **POST `/rag/ask`**            | Executes the full RAG pipeline: retrieve relevant jobs from Qdrant and generate a natural-language answer using the LLM. | `rag_job_search()`         |
-# | **POST `/rag/analyse-resume`** | Sends resume text to the LLM and returns a structured resume analysis.                                                   | `analyse_resume()`         |
-# | **POST `/rag/job-match`**      | Matches a candidate's skills and experience against stored job embeddings and returns the best matching jobs.            | `match_jobs_for_profile()` |
+    try:
+        results = match_jobs_for_profile(request.skills, request.experience, top_k=5)
+        return JobMatchResponse(
+            matches=[JobMatchResult(**r) for r in results]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Job matching failed: {str(e)}")
