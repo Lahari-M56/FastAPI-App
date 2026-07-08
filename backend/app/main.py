@@ -1,60 +1,46 @@
 from fastapi import FastAPI
+from routers import company,job,auth,chat,rag
+from database import Base,engine
+from models import job as job_model,company as company_model,users as user_model
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import Base, engine
 
-# Import models so SQLAlchemy registers them
-from models.users import User
-from models.company import Company
-from models.job import Job
-
-# Import routers
-from routers import auth, company, job, chat, rag
-
-app = FastAPI(
-    title="AI Resume Screening API",
-    version="1.0.0"
-)
-
-# Create database tables (only if you're not using Alembic migrations)
-Base.metadata.create_all(bind=engine)
-
-# CORS Configuration
+app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # React/Vite
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register Routers
+@app.on_event("startup")
+async def startup_event():
+    from database import engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+# Base.metadata.create_all(bind=engine)
 app.include_router(auth.router)
 app.include_router(company.router)
 app.include_router(job.router)
 app.include_router(chat.router)
 app.include_router(rag.router)
-
-
 @app.get("/")
-def root():
-    return {
-        "message": "AI Resume Screening Backend Running"
-    }
-
+def read_root():
+    return {"Hello": "World"}
 
 @app.get("/about")
-def about():
-    return {
-        "project": "AI Resume Screening System",
-        "version": "1.0.0"
-    }
+def read_about():
+    return {"about": "This is about page"}
 
-
-@app.get("/health")
-def health():
-    return {
-        "status": "OK"
-    }
+@app.get("/contact")
+def read_contact():
+    return {"contact": "This is contact page"}
+#  Albattrosdip
+# steps---> 
+#  1.postgres drivers
+# 2.servers
+# 3. registration -> enterprise db->first two options
+# student_db>database>schemas>tables>right click>query tool
