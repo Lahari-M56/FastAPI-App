@@ -9,7 +9,7 @@ import type { Company } from "./types/company"
 import type { Job } from "./types/job"
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Chat from "./pages/Chat";
+import Chat from "./pages/Chat1";
 import ResumeAnalyser from "./pages/ResumeAnalyser";
 import JobMatch from "./pages/JobMatch";
 
