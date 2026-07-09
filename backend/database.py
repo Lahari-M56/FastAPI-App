@@ -42,8 +42,9 @@
 #     async with SessionLocal() as db:
 #         yield db
 import os
-from dotenv import load_dotenv
+from urllib.parse import urlparse, parse_qs, urlunparse
 
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
@@ -57,7 +58,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    raise Exception("DATABASE_URL is not set")
+    raise ValueError("DATABASE_URL environment variable is not set.")
 
 # Convert PostgreSQL URL to AsyncPG URL
 if DATABASE_URL.startswith("postgres://"):
@@ -66,6 +67,7 @@ if DATABASE_URL.startswith("postgres://"):
         "postgresql+asyncpg://",
         1,
     )
+
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace(
         "postgresql://",
@@ -74,17 +76,20 @@ elif DATABASE_URL.startswith("postgresql://"):
     )
 
 connect_args = {
-    # Required when using PgBouncer
+    # Required for Supabase PgBouncer
     "statement_cache_size": 0,
-
-    # Disable prepared statement cache
     "prepared_statement_cache_size": 0,
 }
 
-# Supabase SSL
-if "sslmode=require" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("?sslmode=require", "")
+# Handle sslmode=require safely
+parsed = urlparse(DATABASE_URL)
+query = parse_qs(parsed.query)
+
+if query.get("sslmode") == ["require"]:
     connect_args["ssl"] = "require"
+    DATABASE_URL = urlunparse(parsed._replace(query=""))
+
+print("Database URL:", DATABASE_URL)
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -106,4 +111,7 @@ Base = declarative_base()
 
 async def get_db():
     async with SessionLocal() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
