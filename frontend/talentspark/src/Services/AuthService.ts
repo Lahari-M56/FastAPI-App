@@ -1,21 +1,51 @@
-import type {LoginRequest,LoginResponse,RegisterRequest,RegisterResponse} from "../types/user";
 import axios from "axios";
-import { API_BASE_URL } from "./api";
-const API_URL = `${API_BASE_URL}auth`;
 
-export const login = async (credentials:LoginRequest):Promise<LoginResponse>=>{
-    // Backend expects OAuth2PasswordRequestForm (form-encoded with "username" field)
-    const formData = new URLSearchParams();
-    formData.append("username", credentials.email);
-    formData.append("password", credentials.password);
+// Backend URL
+const API_URL = "http://127.0.0.1:8000";
 
-    const response = await axios.post<LoginResponse>(`${API_URL}/login`, formData, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    });
-    return response.data;
-}
+// Create axios instance
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-export const register = async (user:RegisterRequest):Promise<RegisterResponse>=>{
-    const response = await axios.post<RegisterResponse>(`${API_URL}/register`,user);
-    return response.data;
-}
+// Register
+export const register = async (userData: {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+}) => {
+  const response = await api.post("/auth/register", userData);
+  return response.data;
+};
+
+// Login
+export const login = async (loginData: {
+  email: string;
+  password: string;
+}) => {
+  const response = await api.post("/auth/login", loginData);
+
+  // Save token
+  if (response.data.access_token) {
+    localStorage.setItem("token", response.data.access_token);
+  }
+
+  return response.data;
+};
+
+// Logout
+export const logout = () => {
+  localStorage.removeItem("token");
+};
+
+// Get token
+export const getToken = () => {
+  return localStorage.getItem("token");
+};
+
+// Export axios instance
+export default api;
